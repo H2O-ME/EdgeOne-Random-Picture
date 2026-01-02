@@ -1,10 +1,28 @@
 {
   "name": "random-picture-api",
   "version": "1.0.0",
+  "author": "THW",
+  "license": "MIT",
   "scripts": {
-    "build": "node generate-image-urls.js"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "next": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "image-size": "^2.0.2",
+    "tailwindcss": "latest",
+    "@tailwindcss/postcss": "latest",
+    "postcss": "latest",
+    "autoprefixer": "latest"
   },
   "devDependencies": {
-    "image-size": "^2.0.2"
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "typescript": "latest"
   }
 }
