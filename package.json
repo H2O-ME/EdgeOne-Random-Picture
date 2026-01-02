@@ -4,10 +4,11 @@
   "author": "THW",
   "license": "MIT",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "node scripts/generate-images-metadata.js && next dev",
+    "build": "node scripts/generate-images-metadata.js && next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "prebuild": "node scripts/generate-images-metadata.js"
   },
   "dependencies": {
     "next": "latest",

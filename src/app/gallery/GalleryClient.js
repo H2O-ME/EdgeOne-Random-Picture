@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 
-export default function GalleryPage({ initialImages }) {
+export default function GalleryClient({ initialImages }) {
   const [allImages, setAllImages] = useState(initialImages || []);
   const [selectedImage, setSelectedImage] = useState(null);
 
@@ -32,7 +32,10 @@ export default function GalleryPage({ initialImages }) {
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white font-sans">
       <header className="sticky top-0 z-50 flex justify-between items-center px-8 py-4 bg-[rgba(10, 10, 10, 0.8)] backdrop-blur-md border-b border-white/5">
-        <div className="text-xl font-bold tracking-tight">PicGallery</div>
+        <div className="flex items-center gap-3">
+          <div className="text-xl font-bold tracking-tight">PicGallery</div>
+          <span className="px-2 py-0.5 rounded text-[10px] bg-white/10 text-white/50 font-mono uppercase tracking-wider">SSR</span>
+        </div>
         <div className="flex gap-2 items-center">
           <a href="/" className="text-[#a1a1aa] hover:text-white px-4 py-2 text-sm no-underline">首页</a>
           <a href="https://github.com/H2O-ME/EdgeOne-Random-Picture" target="_blank" className="bg-[#262626] text-[#a1a1aa] px-4 py-2 rounded-md text-sm font-medium hover:bg-[#404040] hover:text-white transition-all no-underline">GitHub</a>
