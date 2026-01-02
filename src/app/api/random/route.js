@@ -33,5 +33,10 @@ export async function GET(request) {
     return NextResponse.json({ url: redirectUrl });
   }
 
-  return NextResponse.redirect(new URL(redirectUrl, request.url), 302);
+  // 修复重定向问题：优先使用 Host 头部构建绝对路径，避免内部端口泄露
+  const host = request.headers.get('x-forwarded-host') || request.headers.get('host');
+  const protocol = request.headers.get('x-forwarded-proto') || 'http';
+  const absoluteUrl = host ? `${protocol}://${host}${redirectUrl}` : new URL(redirectUrl, request.url).toString();
+
+  return NextResponse.redirect(absoluteUrl, 302);
 }

@@ -1,8 +1,6 @@
 import { getImages } from '@/lib/images';
 import GalleryClient from './GalleryClient';
 
-export const dynamic = 'force-dynamic';
-
 export default function GalleryPage() {
   const { pc, mobile } = getImages();
   const allImages = [
