@@ -40,10 +40,10 @@ export default function GalleryItem({ img, idx, onClick }) {
     >
       <img 
         ref={imgRef}
-        src={encodeURI(`/images/${img.src}`)} 
+        src={encodeURI(`/images/${img.thumb || img.src}`)} 
         alt="gallery image" 
         className={`w-full h-full object-cover block transition-opacity duration-700 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
-        loading={idx < 12 ? "eager" : "lazy"}
+        loading={idx < 20 ? "eager" : "lazy"}
         onLoad={() => setIsLoaded(true)}
         onError={() => setIsLoaded(true)}
       />

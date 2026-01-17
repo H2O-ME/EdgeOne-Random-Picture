@@ -6,10 +6,35 @@
   --background-end-rgb: 0, 0, 0;
 }
 
+html, body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
 body {
   color: rgb(var(--foreground-rgb));
   background: rgb(var(--background-start-rgb));
-  margin: 0;
+  overflow: hidden; /* 核心：默认锁定滚动，防止首次加载闪烁 */
+}
+
+/* 隐藏所有元素的滚动条轨道，但保持可滚动 */
+html, body, * {
+  -ms-overflow-style: none !important;  /* IE and Edge */
+  scrollbar-width: none !important;  /* Firefox */
+}
+
+html::-webkit-scrollbar, 
+body::-webkit-scrollbar, 
+*::-webkit-scrollbar {
+  display: none !important; /* Chrome, Safari and Opera */
+  width: 0 !important;
+  height: 0 !important;
+}
+
+html {
+  scrollbar-gutter: auto;
 }
 
 * {

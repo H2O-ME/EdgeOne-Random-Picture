@@ -27,11 +27,13 @@ export async function GET(request) {
   }
 
   const randomImage = list[Math.floor(Math.random() * list.length)];
-  const redirectUrl = `/images/${encodeURI(randomImage.src)}`;
+  const imageUrl = `/images/${randomImage.src}`;
 
   if (searchParams.get('redirect') === 'false') {
-    return NextResponse.json({ url: redirectUrl });
+    return NextResponse.json({ url: imageUrl });
   }
+
+  const redirectUrl = encodeURI(imageUrl);
 
   // 使用相对路径重定向，避免 EdgeOne 内部域名泄露问题
   // NextResponse.redirect 要求绝对路径，所以我们手动构建 Response

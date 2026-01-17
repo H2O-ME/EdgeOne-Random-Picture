@@ -15,7 +15,7 @@ export default function Template({ children }) {
 
   useGSAP(() => {
     gsap.fromTo(containerRef.current, 
-      { opacity: 0, y: 20 }, 
+      { opacity: 0, y: 10 }, 
       { 
         opacity: 1, 
         y: 0, 
@@ -29,7 +29,7 @@ export default function Template({ children }) {
   }, { scope: containerRef, dependencies: [pathname] });
 
   return (
-    <div ref={containerRef} className="min-h-screen">
+    <div ref={containerRef} className="min-h-full w-full">
       {children}
     </div>
   );

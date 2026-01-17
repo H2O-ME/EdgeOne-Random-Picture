@@ -20,6 +20,7 @@
     "postcss": "latest",
     "react": "latest",
     "react-dom": "latest",
+    "sharp": "^0.33.0",
     "tailwindcss": "latest"
   },
   "devDependencies": {

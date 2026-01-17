@@ -1,5 +1,7 @@
 import HomeClient from './HomeClient';
+import { getImages } from '@/lib/images';
 
 export default function HomePage() {
-  return <HomeClient />;
+  const images = getImages();
+  return <HomeClient images={images} />;
 }
