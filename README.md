@@ -2,7 +2,7 @@
 
 一个基于 EdgeOne Pages 构建的随机图片分发系统。
 
-Demo：https://picture.thwthw.dpdns.org/
+Demo：https://picture.tianhw.top/
 
 ## 🌟 特性
 
