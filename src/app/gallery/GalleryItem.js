@@ -10,6 +10,8 @@ export default function GalleryItem({ img, idx, onClick }) {
     const img = imgRef.current;
     if (!img) return;
 
+    setIsLoaded(false);
+    
     const handleLoad = () => setIsLoaded(true);
 
     if (img.complete) {
@@ -18,7 +20,6 @@ export default function GalleryItem({ img, idx, onClick }) {
       img.addEventListener('load', handleLoad);
       img.addEventListener('error', handleLoad);
       
-      // 使用 decode() 预解码
       if (img.decode) {
         img.decode().then(handleLoad).catch(handleLoad);
       }
@@ -31,7 +32,7 @@ export default function GalleryItem({ img, idx, onClick }) {
       img.removeEventListener('error', handleLoad);
       clearTimeout(timer);
     };
-  }, [img.src]);
+  }, [img.thumb, img.src]);
 
   return (
     <div 

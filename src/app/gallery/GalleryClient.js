@@ -247,7 +247,7 @@ export default function GalleryClient({ initialImages }) {
       )}
 
       <footer className="p-12 text-center opacity-40 text-sm border-t border-neutral-200 dark:border-white/5">
-        <p>© {new Date().getFullYear()} <a href="https://tianhw.top" target="_blank" className="text-inherit no-underline hover:opacity-100 transition-colors">THW</a>. Powered by EdgeOne Pages</p>
+        <p>© {new Date().getFullYear()} <a href="https://h-blog.halei0v0.top" target="_blank" className="text-inherit no-underline hover:opacity-100 transition-colors">halei0v0</a>. Powered by Vercel Pages</p>
       </footer>
     </div>
   );

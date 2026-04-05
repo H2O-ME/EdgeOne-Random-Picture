@@ -35,7 +35,7 @@ export async function GET(request) {
 
   const redirectUrl = encodeURI(imageUrl);
 
-  // 使用相对路径重定向，避免 EdgeOne 内部域名泄露问题
+  // 使用相对路径重定向，避免 vercel 内部域名泄露问题
   // NextResponse.redirect 要求绝对路径，所以我们手动构建 Response
   return new Response(null, {
     status: 302,
