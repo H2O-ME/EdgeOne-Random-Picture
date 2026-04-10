@@ -5,11 +5,36 @@ const sharp = require('sharp');
 
 const isImage = (filename) => /\.(jpg|jpeg|png|gif|webp|bmp|tiff)$/i.test(filename);
 
+const getFormat = (filename) => {
+  const ext = filename.split('.').pop().toLowerCase();
+  const formatMap = {
+    'jpg': 'JPEG',
+    'jpeg': 'JPEG',
+    'png': 'PNG',
+    'gif': 'GIF',
+    'webp': 'WebP',
+    'bmp': 'BMP',
+    'tiff': 'TIFF'
+  };
+  return formatMap[ext] || ext.toUpperCase();
+};
+
+const formatTime = (timestamp) => {
+  const date = new Date(timestamp);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  return `${year}-${month}-${day} ${hours}:${minutes}`;
+};
+
 async function generateMetadata() {
   const rootDir = path.join(process.cwd(), 'public', 'images');
   const thumbDir = path.join(rootDir, '.thumbnails');
   const pc = [];
   const mobile = [];
+  const classifications = new Set();
 
   if (!fs.existsSync(rootDir)) {
     console.log('❌ public/images directory not found');
@@ -24,7 +49,7 @@ async function generateMetadata() {
     const list = fs.readdirSync(currentDir);
     for (const file of list) {
       if (file === '.thumbnails') continue;
-      
+
       const filePath = path.join(currentDir, file);
       const stat = fs.statSync(filePath);
 
@@ -37,11 +62,21 @@ async function generateMetadata() {
           const relativePath = path.relative(rootDir, filePath).replace(/\\/g, '/');
           const size = (stat.size / 1024).toFixed(2) + ' KB';
 
+          // 提取分类（检查路径中是否包含 Classification 文件夹）
+          const pathParts = relativePath.split('/');
+          let classification = null;
+          const classificationIndex = pathParts.indexOf('Classification');
+          if (classificationIndex !== -1 && classificationIndex < pathParts.length - 1) {
+            // Classification 文件夹的下一级文件夹名称作为分类
+            classification = pathParts[classificationIndex + 1];
+            classifications.add(classification);
+          }
+
           // 生成缩略图文件名
           const thumbFileName = relativePath.replace(/\//g, '_');
           const thumbPath = path.join(thumbDir, thumbFileName);
           let hasThumb = false;
-          
+
           try {
             if (!fs.existsSync(thumbPath)) {
               await sharp(filePath)
@@ -58,7 +93,10 @@ async function generateMetadata() {
             thumb: hasThumb ? `.thumbnails/${thumbFileName}` : null,
             width: dimensions.width,
             height: dimensions.height,
-            size: size
+            size: size,
+            format: getFormat(file),
+            mtime: stat.mtimeMs,
+            classification: classification
           };
 
           if (dimensions.width > dimensions.height) {
@@ -76,11 +114,16 @@ async function generateMetadata() {
   console.log('🔍 Scanning images and generating thumbnails...');
   await walk(rootDir);
 
-  const metadata = { pc, mobile, updatedAt: new Date().toISOString() };
+  const metadata = {
+    pc,
+    mobile,
+    classifications: Array.from(classifications).sort(),
+    updatedAt: new Date().toISOString()
+  };
   const outputPath = path.join(process.cwd(), 'src', 'lib', 'images-metadata.json');
-  
+
   fs.writeFileSync(outputPath, JSON.stringify(metadata, null, 2));
-  console.log(`✅ Metadata generated: ${pc.length} PC images, ${mobile.length} Mobile images`);
+  console.log(`✅ Metadata generated: ${pc.length} PC images, ${mobile.length} Mobile images, ${classifications.size} Classifications`);
   console.log(`📂 Saved to: ${outputPath}`);
 }
 

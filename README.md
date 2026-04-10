@@ -9,8 +9,10 @@ THW's Demo：https://picture.tianhw.top/
 - **🚀 极速响应**：基于 Vercel 全球边缘节点实现图片分发。   
 - **📱 智能分发**：自动识别访问者设备类型（PC/移动端），精准推送适配尺寸的图片。
 - **🖼️ 沉浸式图库**：内置瀑布流图库，支持 Lightbox 预览、原图下载及 GSAP 丝滑动画。
+- **🔍 高级筛选**：图库页面支持按分类、格式（JPEG、PNG、WebP等）筛选，以及随机、最新、最早排序。
 - **✨ 动感交互**：集成 GSAP 动画引擎，实现沉浸式首页缩放与页面无缝过渡。
-- **🛠️ 架构优化**：采用构建时元数据生成技术。
+- **🎨 现代化UI**：响应式设计，带有背景模糊效果的导航栏，流畅的动画过渡。
+- **🛠️ 架构优化**：采用构建时元数据生成技术，使用 useMemo 优化性能。
 
 ## 🛠️ 快速开始
 
@@ -23,6 +25,13 @@ THW's Demo：https://picture.tianhw.top/
 - **自动分类**：系统会自动识别图片比例：
   - **横屏图片**（宽 > 高）：自动归类为 PC 端素材。
   - **竖屏图片**（高 >= 宽）：自动归类为 移动端素材。
+- **📁 自定义分类**：在 `public/images/Classification/` 目录下创建子文件夹，子文件夹的名称将作为分类名称。例如：
+  ```
+  public/images/Classification/风景/
+  public/images/Classification/动漫/
+  public/images/Classification/人物/
+  ```
+  放入对应分类文件夹中的图片将被自动标记为该分类。
 - **构建优化**：图片元数据在构建时自动生成。
 
 ### 2. 安装与开发
@@ -50,6 +59,8 @@ pnpm dev
 - **指定类型**:
   - PC 端: `/api/random?type=pc`
   - 移动端: `/api/random?type=mobile`
+- **指定分类**: `/api/random?classification=风景`
+- **组合筛选**: `/api/random?type=pc&classification=动漫`
 - **JSON 格式**: `/api/random?redirect=false` (返回图片 URL 路径)
 - **图库预览**: `GET /gallery`
 
