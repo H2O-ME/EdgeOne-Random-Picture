@@ -26,8 +26,49 @@ const formatTime = (timestamp) => {
   const day = String(date.getDate()).padStart(2, '0');
   const hours = String(date.getHours()).padStart(2, '0');
   const minutes = String(date.getMinutes()).padStart(2, '0');
-  return `${year}-${month}-${day} ${hours}:${minutes}`;
+  return `${year}-${month}-${day} ${hours}-${minutes}`;
 };
+
+const TIME_PATTERN = /^\d{4}-\d{2}-\d{2} \d{2}-\d{2}/;
+const isAlreadyNamed = (filename) => TIME_PATTERN.test(filename);
+
+const extractTimestampFromName = (filename) => {
+  const match = filename.match(/(\d{4})-(\d{2})-(\d{2}) (\d{2})-(\d{2})/);
+  if (match) {
+    return new Date(match[1], match[2] - 1, match[3], match[4], match[5]).getTime();
+  }
+  return null;
+};
+
+async function renameImagesByTime(dir) {
+  const list = fs.readdirSync(dir);
+  let renamedCount = 0;
+
+  for (const file of list) {
+    if (file === '.thumbnails') continue;
+    const filePath = path.join(dir, file);
+    const stat = fs.statSync(filePath);
+
+    if (stat.isDirectory()) {
+      renamedCount += await renameImagesByTime(filePath);
+    } else if (isImage(file)) {
+      if (isAlreadyNamed(file)) continue;
+
+      const ext = path.extname(file);
+      const baseName = path.basename(file, ext);
+      const timePrefix = formatTime(stat.mtimeMs);
+      const newName = `${timePrefix} ${baseName}${ext}`;
+
+      if (fs.existsSync(path.join(dir, newName))) continue;
+
+      fs.renameSync(filePath, path.join(dir, newName));
+      console.log(`  📷 ${file} → ${newName}`);
+      renamedCount++;
+    }
+  }
+
+  return renamedCount;
+}
 
 async function generateMetadata() {
   const rootDir = path.join(process.cwd(), 'public', 'images');
@@ -44,6 +85,9 @@ async function generateMetadata() {
   if (!fs.existsSync(thumbDir)) {
     fs.mkdirSync(thumbDir, { recursive: true });
   }
+
+  console.log('🔄 Renaming images by time...');
+  await renameImagesByTime(rootDir);
 
   const walk = async (currentDir) => {
     const list = fs.readdirSync(currentDir);
@@ -62,17 +106,14 @@ async function generateMetadata() {
           const relativePath = path.relative(rootDir, filePath).replace(/\\/g, '/');
           const size = (stat.size / 1024).toFixed(2) + ' KB';
 
-          // 提取分类（检查路径中是否包含 Classification 文件夹）
           const pathParts = relativePath.split('/');
           let classification = null;
           const classificationIndex = pathParts.indexOf('Classification');
           if (classificationIndex !== -1 && classificationIndex < pathParts.length - 1) {
-            // Classification 文件夹的下一级文件夹名称作为分类
             classification = pathParts[classificationIndex + 1];
             classifications.add(classification);
           }
 
-          // 生成缩略图文件名
           const thumbFileName = relativePath.replace(/\//g, '_');
           const thumbPath = path.join(thumbDir, thumbFileName);
           let hasThumb = false;
@@ -88,6 +129,8 @@ async function generateMetadata() {
             console.warn(`⚠️ 缩略图生成失败: ${filePath}`, sharpErr.message);
           }
 
+          const fileTime = extractTimestampFromName(file) || stat.mtimeMs;
+
           const imgData = {
             src: relativePath,
             thumb: hasThumb ? `.thumbnails/${thumbFileName}` : null,
@@ -95,7 +138,7 @@ async function generateMetadata() {
             height: dimensions.height,
             size: size,
             format: getFormat(file),
-            mtime: stat.mtimeMs,
+            mtime: fileTime,
             classification: classification
           };
 
