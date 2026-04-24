@@ -81,6 +81,8 @@ export default function HomeClient({ images }) {
               
               <div className="flex flex-col gap-2 text-[9px] md:text-[10px] tracking-[0.15em] text-white/60 font-light lowercase drop-shadow-md">
                 <p>指定类型: ?type=[pc|mobile]</p>
+                <p>指定格式: ?format=[webp|png|jpeg]</p>
+                <p>分类路由: /api/random/[分类名]</p>
                 <p>json 格式: ?redirect=false</p>
               </div>
             </div>
