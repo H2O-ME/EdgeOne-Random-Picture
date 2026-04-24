@@ -21,6 +21,16 @@
       "classification": "人文"
     },
     {
+      "src": "Classification/人文/2026-04-25 00-38 【哲风壁纸】古风建筑-古风甜妹.png",
+      "thumb": ".thumbnails/Classification_人文_2026-04-25 00-38 【哲风壁纸】古风建筑-古风甜妹.png",
+      "width": 4000,
+      "height": 2250,
+      "size": "1266.54 KB",
+      "format": "PNG",
+      "mtime": 1777048680000,
+      "classification": "人文"
+    },
+    {
       "src": "Classification/动漫/2026-04-06 06-16 1.png",
       "thumb": ".thumbnails/Classification_动漫_2026-04-06 06-16 1.png",
       "width": 2912,
@@ -2349,5 +2359,5 @@
     "国家队",
     "风景"
   ],
-  "updatedAt": "2026-04-24T16:22:37.756Z"
+  "updatedAt": "2026-04-24T17:00:21.344Z"
 }
