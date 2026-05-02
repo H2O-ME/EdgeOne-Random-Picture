@@ -1,8 +1,8 @@
 import './globals.css';
 
 export const metadata = {
-  title: 'EdgeOne Random Picture',
-  description: '基于 EdgeOne Pages 的随机图片分发系统',
+  title: 'Vercel Random Picture',
+  description: '基于 Vercel Pages 的随机图片分发系统',
 };
 
 export default function RootLayout({ children }) {

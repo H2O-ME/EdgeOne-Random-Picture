@@ -1,14 +1,14 @@
 {
-  "name": "edgeone-random-picture",
+  "name": "vercel-random-picture-halei0v0", 
   "version": "1.1.0",
-  "author": "THW",
+  "author": "halei0v0",
   "license": "MIT",
   "scripts": {
-    "dev": "node scripts/generate-images-metadata.js && next dev",
-    "build": "node scripts/generate-images-metadata.js && next build",
+    "dev": "node scripts/generate-images-metadata.js && node scripts/generate-videos-metadata.js && next dev",
+    "build": "node scripts/generate-images-metadata.js && node scripts/generate-videos-metadata.js && next build",
     "start": "next start",
     "lint": "next lint",
-    "prebuild": "node scripts/generate-images-metadata.js"
+    "prebuild": "node scripts/generate-images-metadata.js && node scripts/generate-videos-metadata.js"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",

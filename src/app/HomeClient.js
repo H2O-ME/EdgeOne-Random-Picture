@@ -81,6 +81,8 @@ export default function HomeClient({ images }) {
               
               <div className="flex flex-col gap-2 text-[9px] md:text-[10px] tracking-[0.15em] text-white/60 font-light lowercase drop-shadow-md">
                 <p>指定类型: ?type=[pc|mobile]</p>
+                <p>指定格式: ?format=[webp|png|jpeg]</p>
+                <p>分类路由: /api/random/[分类名]</p>
                 <p>json 格式: ?redirect=false</p>
               </div>
             </div>
@@ -97,7 +99,14 @@ export default function HomeClient({ images }) {
                 href="/gallery" 
                 className="text-sm tracking-[0.3em] uppercase hover:text-white/60 transition-colors py-2 border-b border-transparent hover:border-white/60"
               >
-                所有图片
+                图片库
+              </Link>
+
+              <Link 
+                href="/video-gallery" 
+                className="text-sm tracking-[0.3em] uppercase hover:text-white/60 transition-colors py-2 border-b border-transparent hover:border-white/60"
+              >
+                视频库
               </Link>
             </div>
           </div>
@@ -107,10 +116,10 @@ export default function HomeClient({ images }) {
       {/* Footer */}
       <footer className="fixed bottom-8 left-0 right-0 z-20 flex flex-col items-center gap-2 opacity-60 hover:opacity-100 transition-opacity duration-500">
         <div className="flex items-center gap-4 text-[10px] font-bold tracking-[0.2em] uppercase text-white">
-          <a href="https://tianhw.top" target="_blank" className="text-inherit no-underline hover:text-white transition-colors">THW</a>
+          <a href="https://v-blog.halei0v0.top" target="_blank" className="text-inherit no-underline hover:text-white transition-colors">halei0v0</a>
         </div>
         <div className="text-[9px] text-white/30 font-medium">
-          © {new Date().getFullYear()} Powered by EdgeOne Pages
+          © {new Date().getFullYear()} Powered by Vercel Pages
         </div>
       </footer>
     </div>
