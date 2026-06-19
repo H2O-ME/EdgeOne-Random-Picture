@@ -3,6 +3,7 @@
   "version": "1.1.0",
   "author": "THW",
   "license": "MIT",
+  "packageManager": "pnpm@10.0.0",
   "scripts": {
     "dev": "node scripts/generate-images-metadata.js && next dev",
     "build": "node scripts/generate-images-metadata.js && next build",
