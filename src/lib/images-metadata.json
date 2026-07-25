@@ -1321,6 +1321,46 @@
       "classification": "人文"
     },
     {
+      "src": "Classification/博客/2026-07-25 11-07 【哲风壁纸】夏日-大海-海滨.png",
+      "thumb": ".thumbnails/Classification_博客_2026-07-25 11-07 【哲风壁纸】夏日-大海-海滨.png",
+      "width": 3840,
+      "height": 2159,
+      "size": "2079.72 KB",
+      "format": "PNG",
+      "mtime": 1784948820000,
+      "classification": "博客"
+    },
+    {
+      "src": "Classification/博客/2026-07-25 11-08 【哲风壁纸】cat-猫.png",
+      "thumb": ".thumbnails/Classification_博客_2026-07-25 11-08 【哲风壁纸】cat-猫.png",
+      "width": 3854,
+      "height": 2160,
+      "size": "769.94 KB",
+      "format": "PNG",
+      "mtime": 1784948880000,
+      "classification": "博客"
+    },
+    {
+      "src": "Classification/博客/2026-07-25 11-08 【哲风壁纸】养眼-猫咪.png",
+      "thumb": ".thumbnails/Classification_博客_2026-07-25 11-08 【哲风壁纸】养眼-猫咪.png",
+      "width": 5472,
+      "height": 3072,
+      "size": "661.53 KB",
+      "format": "PNG",
+      "mtime": 1784948880000,
+      "classification": "博客"
+    },
+    {
+      "src": "Classification/博客/2026-07-25 11-09 【哲风壁纸】二次元-动画-山脉.png",
+      "thumb": ".thumbnails/Classification_博客_2026-07-25 11-09 【哲风壁纸】二次元-动画-山脉.png",
+      "width": 2912,
+      "height": 1632,
+      "size": "1871.71 KB",
+      "format": "PNG",
+      "mtime": 1784948940000,
+      "classification": "博客"
+    },
+    {
       "src": "Classification/国家队/2026-04-06 06-16 1.png",
       "thumb": ".thumbnails/Classification_国家队_2026-04-06 06-16 1.png",
       "width": 3840,
@@ -2466,8 +2506,9 @@
   "classifications": [
     "二次元",
     "人文",
+    "博客",
     "国家队",
     "风景"
   ],
-  "updatedAt": "2026-05-03T20:41:20.389Z"
+  "updatedAt": "2026-07-25T03:11:55.474Z"
 }
