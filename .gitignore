@@ -1,5 +1,7 @@
 node_modules/
 .next/
+
+# Generated files
 src/lib/images-metadata.json
 public/images/.thumbnails/
 
@@ -20,4 +22,3 @@ pnpm-debug.log*
 # Vercel / EdgeOne
 .vercel
 .edgeone
-src/lib/images-metadata.json

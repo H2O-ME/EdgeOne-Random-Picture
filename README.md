@@ -1,58 +1,106 @@
-# EdgeOne Random Picture
+<p align="center">
+  <img src="./assets/readme/hero.svg" width="100%" alt="EdgeOne Random Picture — 基于 EdgeOne Pages 的随机图片 API 分发系统，智能识别设备类型，精准推送适配图片">
+</p>
 
-一个基于 EdgeOne Pages 构建的随机图片分发系统。
+<p align="center">
+  <a href="https://picture.tianhw.top/"><strong>🔗 在线演示</strong></a> ·
+  <a href="https://picture.tianhw.top/api/random">随机一张</a> ·
+  <a href="https://picture.tianhw.top/gallery">图库预览</a>
+</p>
 
-Demo：https://picture.tianhw.top/
+---
 
-## 🌟 特性
+## 它是什么
 
-- **🚀 极速响应**：基于 EdgeOne 全球边缘节点实现图片分发。
-- **📱 智能分发**：自动识别访问者设备类型（PC/移动端），精准推送适配尺寸的图片。
-- **🖼️ 沉浸式图库**：内置瀑布流图库，支持 Lightbox 预览、原图下载及 GSAP 丝滑动画。
-- **✨ 动感交互**：集成 GSAP 动画引擎，实现沉浸式首页缩放与页面无缝过渡。
-- **🛠️ 架构优化**：采用构建时元数据生成技术。
-
-## 🛠️ 快速开始
-
-### 1. 准备图片
-
-只需将您的图片素材直接**放入** `public/images` 目录即可：
-- **无需重命名**：支持任何文件名。
-- **格式无忧**：支持 `.jpg`, `.jpeg`, `.png`, `.gif`, `.webp`, `.bmp`, `.tiff` 等主流格式。
-- **支持子目录**：您可以创建文件夹对图片进行分类管理，系统会自动递归扫描。
-- **自动分类**：系统会自动识别图片比例：
-  - **横屏图片**（宽 > 高）：自动归类为 PC 端素材。
-  - **竖屏图片**（高 >= 宽）：自动归类为 移动端素材。
-- **构建优化**：图片元数据在构建时自动生成。
-
-### 2. 安装与开发
+一个部署在 EdgeOne Pages 上的**随机图片 API 服务**。放入图片，获得一个 URL——每次请求返回一张随机图片，自动适配访问者设备。
 
 ```bash
-# 安装依赖
-pnpm install
+# 在浏览器、Markdown、或任何需要随机图片的地方直接使用
+https://picture.tianhw.top/api/random
+```
 
-# 启动本地开发服务器
+## 工作原理
+
+```text
+请求 /api/random
+    │
+    ├─ ?type=pc      → 随机横屏图片 → 302 重定向
+    ├─ ?type=mobile  → 随机竖屏图片 → 302 重定向
+    └─ 无参数        → User-Agent 识别设备 → 自动匹配
+```
+
+- **横屏图片**（宽 > 高）自动归类为 PC 端素材
+- **竖屏图片**（高 ≥ 宽）自动归类为移动端素材
+- 图片元数据在构建时生成，运行时无文件系统开销
+
+## 特性
+
+| 能力 | 说明 |
+|------|------|
+| 智能分发 | 基于 User-Agent 自动识别设备，推送适配尺寸的图片 |
+| 全球加速 | EdgeOne 边缘节点分发，静态资源一年强缓存 |
+| 沉浸式图库 | 瀑布流布局 + Lightbox 预览 + GSAP 动画 |
+| 零配置 | 图片放入目录即可，自动扫描、分类、生成缩略图 |
+| JSON 模式 | `?redirect=false` 返回结构化 JSON，方便程序调用 |
+
+## 快速开始
+
+### 1. 放入图片
+
+将图片放入 `public/images/` 目录：
+
+- 支持 `.jpg` `.png` `.gif` `.webp` `.bmp` `.tiff`
+- 支持子目录分类，系统递归扫描
+- 无需重命名，自动按比例分类
+
+### 2. 本地运行
+
+```bash
+pnpm install
 pnpm dev
 ```
 
-### 3. 部署
+访问 `http://localhost:3000` 查看首页，`/gallery` 查看图库，`/api/random` 测试 API。
+
+### 3. 部署到 EdgeOne Pages
 
 [![使用 EdgeOne Pages 部署](https://cdnstatic.tencentcs.com/edgeone/pages/deploy.svg)](https://edgeone.ai/pages/new?repository-url=https://github.com/H2O-ME/EdgeOne-Random-Picture)
 
-点击上方一键按钮即可快速部署，相关配置应该会自动识别，也可以照下方参数填写：
-- **框架预设**：选择 `Next.js`
-- **构建命令**：`npm run build`
-- **输出目录**：`.next`
+| 配置项 | 值 |
+|--------|------|
+| 框架预设 | `Next.js` |
+| 构建命令 | `npm run build` |
+| 输出目录 | `.next` |
 
-## 📡 API 接口
+## API 参考
 
-- **随机图片重定向**: `GET /api/random`
-- **指定类型**:
-  - PC 端: `/api/random?type=pc`
-  - 移动端: `/api/random?type=mobile`
-- **JSON 格式**: `/api/random?redirect=false` (返回图片 URL 路径)
-- **图库预览**: `GET /gallery`
+| 端点 | 说明 | 响应 |
+|------|------|------|
+| `GET /api/random` | 随机图片（自动识别设备） | `302` 重定向到图片 |
+| `GET /api/random?type=pc` | 随机横屏图片 | `302` 重定向 |
+| `GET /api/random?type=mobile` | 随机竖屏图片 | `302` 重定向 |
+| `GET /api/random?redirect=false` | JSON 格式返回 | `{"url","width","height","size"}` |
+| `GET /gallery` | 图库页面 | HTML |
 
-## 📄 许可证
+**JSON 响应示例：**
 
-[MIT License](LICENSE)
+```json
+{
+  "url": "/images/621.webp",
+  "width": 1536,
+  "height": 864,
+  "size": "259.64 KB"
+}
+```
+
+## 技术栈
+
+- **框架**：Next.js 16 (App Router, Turbopack)
+- **样式**：Tailwind CSS 4
+- **动画**：GSAP + @gsap/react
+- **图片处理**：sharp（缩略图）+ image-size（元数据）
+- **部署**：EdgeOne Pages
+
+## 许可证
+
+[MIT](LICENSE) © THW

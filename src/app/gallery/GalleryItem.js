@@ -7,43 +7,46 @@ export default function GalleryItem({ img, idx, onClick }) {
   const imgRef = useRef(null);
 
   useEffect(() => {
-    const img = imgRef.current;
-    if (!img) return;
+    const imgEl = imgRef.current;
+    if (!imgEl) return;
 
     const handleLoad = () => setIsLoaded(true);
 
-    if (img.complete) {
+    if (imgEl.complete) {
       handleLoad();
     } else {
-      img.addEventListener('load', handleLoad);
-      img.addEventListener('error', handleLoad);
-      
-      // 使用 decode() 预解码
-      if (img.decode) {
-        img.decode().then(handleLoad).catch(handleLoad);
-      }
+      imgEl.addEventListener('load', handleLoad);
+      imgEl.addEventListener('error', handleLoad);
     }
 
-    const timer = setTimeout(handleLoad, 3000);
+    // 超时兜底，避免永远不显示
+    const timer = setTimeout(handleLoad, 5000);
 
     return () => {
-      img.removeEventListener('load', handleLoad);
-      img.removeEventListener('error', handleLoad);
+      imgEl.removeEventListener('load', handleLoad);
+      imgEl.removeEventListener('error', handleLoad);
       clearTimeout(timer);
     };
   }, [img.src]);
 
+  const altText = `图片 ${idx + 1} - ${img.width}×${img.height} ${img.type === 'PC' ? '横屏' : '竖屏'}`;
+
   return (
-    <div 
+    <div
       onClick={onClick}
-      className={`relative overflow-hidden bg-neutral-200 dark:bg-white/5 cursor-zoom-in group transition-all duration-300 hover:z-10 rounded-xl shadow-sm hover:shadow-xl ${img.type === 'PC' ? 'col-span-2 row-span-1' : 'col-span-1 row-span-2'}`}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); } }}
+      role="listitem"
+      tabIndex={0}
+      aria-label={altText}
+      className={`relative overflow-hidden bg-neutral-200 dark:bg-white/5 cursor-zoom-in group transition-all duration-300 hover:z-10 rounded-xl shadow-sm hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-neutral-400 dark:focus:ring-white/40 ${img.type === 'PC' ? 'col-span-2 row-span-1' : 'col-span-1 row-span-2'}`}
     >
-      <img 
+      <img
         ref={imgRef}
-        src={encodeURI(`/images/${img.thumb || img.src}`)} 
-        alt="gallery image" 
+        src={encodeURI(`/images/${img.thumb || img.src}`)}
+        alt={altText}
         className={`w-full h-full object-cover block transition-all duration-700 group-hover:scale-105 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
         loading={idx < 20 ? "eager" : "lazy"}
+        decoding="async"
         onLoad={() => setIsLoaded(true)}
         onError={() => setIsLoaded(true)}
       />
