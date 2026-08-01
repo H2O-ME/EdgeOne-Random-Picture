@@ -6,12 +6,14 @@
   --foreground-rgb: 23, 23, 23;
   --background-start: 250, 250, 250;
   --background-end: 245, 245, 245;
+  color-scheme: light;
 }
 
 .dark {
   --foreground-rgb: 255, 255, 255;
   --background-start: 10, 10, 10;
   --background-end: 0, 0, 0;
+  color-scheme: dark;
 }
 
 html {

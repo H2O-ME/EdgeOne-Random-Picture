@@ -1,43 +1,95 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import GalleryItem from './GalleryItem';
 import ThemeToggle from '@/components/ThemeToggle';
 import { useScrollLock } from '@/hooks/useScrollLock';
+import type { TypedImage, SortMode } from '@/types';
 
 const BATCH_SIZE = 40;
 
-export default function GalleryClient({ initialImages }) {
-  // 客户端随机排序，避免服务端非确定性输出影响 SSG 缓存
-  const [allImages] = useState(() =>
-    [...(initialImages || [])].sort(() => Math.random() - 0.5)
-  );
+const SORT_OPTIONS: { value: SortMode; label: string }[] = [
+  { value: 'random', label: '随机' },
+  { value: 'newest', label: '最新' },
+  { value: 'oldest', label: '最早' },
+  { value: 'name-asc', label: '名称 A→Z' },
+  { value: 'name-desc', label: '名称 Z→A' },
+];
+
+function sortImages(images: TypedImage[], mode: SortMode): TypedImage[] {
+  const arr = [...images];
+  switch (mode) {
+    case 'random':
+      return arr.sort(() => Math.random() - 0.5);
+    case 'newest':
+      return arr.sort((a, b) => new Date(b.mtime).getTime() - new Date(a.mtime).getTime());
+    case 'oldest':
+      return arr.sort((a, b) => new Date(a.mtime).getTime() - new Date(b.mtime).getTime());
+    case 'name-asc':
+      return arr.sort((a, b) => a.src.localeCompare(b.src, 'zh-CN'));
+    case 'name-desc':
+      return arr.sort((a, b) => b.src.localeCompare(a.src, 'zh-CN'));
+    default:
+      return arr;
+  }
+}
+
+interface GalleryClientProps {
+  initialImages: TypedImage[];
+}
+
+export default function GalleryClient({ initialImages }: GalleryClientProps) {
+  const [mounted, setMounted] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortMode, setSortMode] = useState<SortMode>('random');
   const [visibleCount, setVisibleCount] = useState(BATCH_SIZE);
-  const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedImage, setSelectedImage] = useState<TypedImage | null>(null);
   const [copied, setCopied] = useState(false);
   const [lightboxImgError, setLightboxImgError] = useState(false);
 
-  const containerRef = useRef(null);
-  const gridRef = useRef(null);
-  const lightboxRef = useRef(null);
-  const cardRef = useRef(null);
-  const closeBtnRef = useRef(null);
-  const sentinelRef = useRef(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const gridRef = useRef<HTMLElement>(null);
+  const lightboxRef = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
+  const closeBtnRef = useRef<HTMLButtonElement>(null);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   // 统一滚动锁定
   useScrollLock(!!selectedImage);
 
+  // 挂载标记：避免 SSR/CSR 随机排序不一致导致 hydration 错误
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // 搜索过滤 + 排序（未挂载时保持原始顺序，确保 SSR 确定性）
+  const filteredImages = useMemo(() => {
+    let result = initialImages || [];
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      result = result.filter(img => img.src.toLowerCase().includes(q));
+    }
+    if (!mounted && sortMode === 'random') return result;
+    return sortImages(result, sortMode);
+  }, [initialImages, searchQuery, sortMode, mounted]);
+
+  // 搜索/排序变化时重置可见数量
+  useEffect(() => {
+    setVisibleCount(BATCH_SIZE);
+  }, [searchQuery, sortMode]);
+
   // 渐进式加载：监听哨兵元素
   useEffect(() => {
-    if (!sentinelRef.current || visibleCount >= allImages.length) return;
+    if (!sentinelRef.current || visibleCount >= filteredImages.length) return;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          setVisibleCount(prev => Math.min(prev + BATCH_SIZE, allImages.length));
+          setVisibleCount(prev => Math.min(prev + BATCH_SIZE, filteredImages.length));
         }
       },
       { rootMargin: '200px' }
@@ -45,7 +97,7 @@ export default function GalleryClient({ initialImages }) {
 
     observer.observe(sentinelRef.current);
     return () => observer.disconnect();
-  }, [visibleCount, allImages.length]);
+  }, [visibleCount, filteredImages.length]);
 
   useGSAP(() => {
     if (gridRef.current) {
@@ -69,7 +121,7 @@ export default function GalleryClient({ initialImages }) {
         gsap.set(Array.from(gridRef.current.children).slice(24), { opacity: 1 });
       }
     }
-  }, { scope: containerRef, dependencies: [visibleCount] });
+  }, { scope: containerRef, dependencies: [visibleCount, filteredImages.length] });
 
   useGSAP(() => {
     if (selectedImage && lightboxRef.current && cardRef.current) {
@@ -84,22 +136,26 @@ export default function GalleryClient({ initialImages }) {
     }
   }, { dependencies: [selectedImage] });
 
-  // 键盘操作：Escape 关闭 Lightbox
+  // 键盘操作：Escape 关闭 Lightbox，Ctrl+K 聚焦搜索
   useEffect(() => {
-    if (!selectedImage) return;
-
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape') closeLightbox();
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && selectedImage) closeLightbox();
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
     };
 
     document.addEventListener('keydown', handleKeyDown);
-    // 聚焦关闭按钮（焦点管理）
-    closeBtnRef.current?.focus();
-
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [selectedImage]);
 
-  const openLightbox = useCallback((img) => {
+  // Lightbox 打开时聚焦关闭按钮
+  useEffect(() => {
+    if (selectedImage) closeBtnRef.current?.focus();
+  }, [selectedImage]);
+
+  const openLightbox = useCallback((img: TypedImage) => {
     setSelectedImage(img);
     setCopied(false);
     setLightboxImgError(false);
@@ -124,20 +180,18 @@ export default function GalleryClient({ initialImages }) {
     }
   }, []);
 
-  const copyToClipboard = useCallback((text) => {
+  const copyToClipboard = useCallback((text: string) => {
     if (navigator.clipboard) {
       navigator.clipboard.writeText(text).then(() => {
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
-      }).catch(() => {
-        fallbackCopy(text);
-      });
+      }).catch(() => fallbackCopy(text));
     } else {
       fallbackCopy(text);
     }
   }, []);
 
-  const fallbackCopy = (text) => {
+  const fallbackCopy = (text: string) => {
     try {
       const textArea = document.createElement("textarea");
       textArea.value = text;
@@ -154,25 +208,63 @@ export default function GalleryClient({ initialImages }) {
     }
   };
 
-  const visibleImages = allImages.slice(0, visibleCount);
+  const visibleImages = filteredImages.slice(0, visibleCount);
 
   return (
     <div ref={containerRef} className="min-h-screen bg-[#fafafa] dark:bg-black text-neutral-900 dark:text-white selection:bg-neutral-200 dark:selection:bg-white/10 relative transition-colors duration-500">
-      <header className="fixed top-0 left-0 right-0 z-[60] flex justify-between items-center px-8 py-6 pointer-events-none">
-        <Link href="/" className="text-sm tracking-[0.4em] uppercase font-light hover:opacity-50 transition-opacity pointer-events-auto">
-          Gallery
-        </Link>
-        <div className="flex items-center gap-6 pointer-events-auto">
-          <div className="text-[10px] tracking-[0.3em] uppercase opacity-40 font-medium hidden md:block" aria-label={`共 ${allImages.length} 张图片`}>
-            全部图片 · {allImages.length}
+      {/* Unified Fixed Header - Single Row */}
+      <header className="fixed top-0 left-0 right-0 z-[60] bg-[#fafafa]/90 dark:bg-black/90 backdrop-blur-md border-b border-neutral-200/50 dark:border-white/5">
+        <div className="flex items-center gap-3 px-4 md:px-6 py-2.5">
+          <Link href="/" className="text-sm tracking-[0.3em] uppercase font-light hover:opacity-50 transition-opacity shrink-0">
+            Gallery
+          </Link>
+          <div className="relative flex-1 max-w-xs md:max-w-sm">
+            <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              ref={searchInputRef}
+              type="search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="搜索文件名 (Ctrl+K)"
+              aria-label="搜索图片文件名"
+              className="w-full pl-8 pr-7 py-1.5 rounded-md bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-white/10 text-xs text-neutral-900 dark:text-white placeholder:opacity-40 focus:outline-none focus:ring-2 focus:ring-neutral-400 dark:focus:ring-white/30 transition-shadow"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] opacity-40 hover:opacity-80 transition-opacity"
+                aria-label="清除搜索"
+              >
+                ✕
+              </button>
+            )}
           </div>
-          <ThemeToggle />
+          <select
+            id="sort-select"
+            value={sortMode}
+            onChange={(e) => setSortMode(e.target.value as SortMode)}
+            aria-label="排序方式"
+            className="px-2 py-1.5 rounded-md bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-white/10 text-xs text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-neutral-400 dark:focus:ring-white/30 cursor-pointer shrink-0"
+          >
+            {SORT_OPTIONS.map(opt => (
+              <option key={opt.value} value={opt.value} className="bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white">{opt.label}</option>
+            ))}
+          </select>
+          <span className="text-[10px] tracking-wider opacity-40 font-medium hidden sm:block shrink-0" aria-live="polite">
+            {filteredImages.length} / {initialImages.length}
+          </span>
+          <div className="ml-auto shrink-0">
+            <ThemeToggle />
+          </div>
         </div>
       </header>
 
+      {/* Grid */}
       <main
         ref={gridRef}
-        className="pt-24 p-2 grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] auto-rows-[120px] md:grid-cols-[repeat(auto-fill,minmax(160px,1fr))] md:auto-rows-[160px] grid-flow-dense gap-2 pb-20 max-w-[2000px] mx-auto"
+        className="pt-[60px] px-3 md:px-4 grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] auto-rows-[130px] md:grid-cols-[repeat(auto-fill,minmax(180px,1fr))] md:auto-rows-[160px] grid-flow-dense gap-2.5 pb-20 max-w-[2000px] mx-auto"
         role="list"
         aria-label="图片列表"
       >
@@ -186,8 +278,22 @@ export default function GalleryClient({ initialImages }) {
         ))}
       </main>
 
+      {/* Empty state */}
+      {filteredImages.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-32 gap-4">
+          <span className="text-4xl opacity-20">🔍</span>
+          <p className="text-sm opacity-40">未找到匹配 &ldquo;{searchQuery}&rdquo; 的图片</p>
+          <button
+            onClick={() => setSearchQuery('')}
+            className="text-xs underline opacity-50 hover:opacity-100 transition-opacity"
+          >
+            清除搜索
+          </button>
+        </div>
+      )}
+
       {/* 哨兵元素：触发加载更多 */}
-      {visibleCount < allImages.length && (
+      {visibleCount < filteredImages.length && (
         <div ref={sentinelRef} className="h-10 flex items-center justify-center">
           <span className="text-xs opacity-30 tracking-widest">加载更多...</span>
         </div>
@@ -231,6 +337,14 @@ export default function GalleryClient({ initialImages }) {
             </div>
 
             <div className="w-full md:w-[320px] p-8 flex flex-col gap-6 border-t md:border-t-0 md:border-l border-neutral-200 dark:border-white/10 overflow-y-auto">
+              {/* 文件名 */}
+              <div className="space-y-1">
+                <span className="text-[10px] opacity-40 uppercase tracking-widest font-bold">文件名</span>
+                <div className="bg-neutral-100 dark:bg-white/5 p-3 rounded-lg font-mono text-xs opacity-90 break-all">
+                  {selectedImage.src}
+                </div>
+              </div>
+
               <div className="space-y-4">
                 <div className="space-y-2">
                   <label className="text-[10px] opacity-40 uppercase tracking-widest font-bold" id="url-label">资源地址</label>
@@ -281,10 +395,18 @@ export default function GalleryClient({ initialImages }) {
                 </div>
               </div>
 
-              <div className="space-y-1">
-                <span className="text-[10px] opacity-40 uppercase tracking-widest font-bold">类型</span>
-                <div className="bg-neutral-100 dark:bg-white/5 p-3 rounded-lg font-mono text-xs opacity-90">
-                  {selectedImage.type === 'PC' ? '横屏 (Landscape)' : '竖屏 (Portrait)'}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <span className="text-[10px] opacity-40 uppercase tracking-widest font-bold">类型</span>
+                  <div className="bg-neutral-100 dark:bg-white/5 p-3 rounded-lg font-mono text-xs opacity-90">
+                    {selectedImage.type === 'PC' ? '横屏' : '竖屏'}
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <span className="text-[10px] opacity-40 uppercase tracking-widest font-bold">修改时间</span>
+                  <div className="bg-neutral-100 dark:bg-white/5 p-3 rounded-lg font-mono text-xs opacity-90">
+                    {selectedImage.mtime ? new Date(selectedImage.mtime).toLocaleDateString('zh-CN') : '—'}
+                  </div>
                 </div>
               </div>
 

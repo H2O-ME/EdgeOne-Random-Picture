@@ -4,9 +4,9 @@ import { useEffect } from 'react';
 
 /**
  * 统一管理页面滚动锁定
- * @param {boolean} locked - 是否锁定滚动
+ * @param locked - 是否锁定滚动
  */
-export function useScrollLock(locked) {
+export function useScrollLock(locked: boolean) {
   useEffect(() => {
     if (!locked) return;
 

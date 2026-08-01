@@ -100,6 +100,7 @@ async function processImage(filePath, rootDir, thumbDir) {
     width: dimensions.width,
     height: dimensions.height,
     size,
+    mtime: stat.mtime.toISOString(),
   };
 }
 

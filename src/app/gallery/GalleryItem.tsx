@@ -1,10 +1,17 @@
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
+import type { TypedImage } from '@/types';
 
-export default function GalleryItem({ img, idx, onClick }) {
+interface GalleryItemProps {
+  img: TypedImage;
+  idx: number;
+  onClick: () => void;
+}
+
+export default function GalleryItem({ img, idx, onClick }: GalleryItemProps) {
   const [isLoaded, setIsLoaded] = useState(false);
-  const imgRef = useRef(null);
+  const imgRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
     const imgEl = imgRef.current;
@@ -29,7 +36,8 @@ export default function GalleryItem({ img, idx, onClick }) {
     };
   }, [img.src]);
 
-  const altText = `图片 ${idx + 1} - ${img.width}×${img.height} ${img.type === 'PC' ? '横屏' : '竖屏'}`;
+  const fileName = img.src.split('/').pop() || img.src;
+  const altText = `${fileName} - ${img.width}×${img.height} ${img.type === 'PC' ? '横屏' : '竖屏'}`;
 
   return (
     <div
@@ -50,6 +58,10 @@ export default function GalleryItem({ img, idx, onClick }) {
         onLoad={() => setIsLoaded(true)}
         onError={() => setIsLoaded(true)}
       />
+      {/* Hover: show filename */}
+      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-2 pt-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        <span className="text-[9px] text-white/90 font-mono truncate block">{fileName}</span>
+      </div>
     </div>
   );
 }

@@ -1,15 +1,18 @@
 import { getImages } from '@/lib/images';
 import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import type { ImageMeta } from '@/types';
 
 const VALID_TYPES = new Set(['pc', 'mobile', 'phone']);
 
-export async function GET(request) {
+export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const typeParam = searchParams.get('type');
+    const excludeParam = searchParams.get('exclude');
     const { pc, mobile } = getImages();
 
-    let list;
+    let list: ImageMeta[];
 
     if (typeParam === 'pc') {
       list = pc;
@@ -25,6 +28,12 @@ export async function GET(request) {
       const userAgent = request.headers.get('user-agent') || '';
       const isMobileDevice = /mobile|android|iphone|ipad|ipod/i.test(userAgent);
       list = isMobileDevice ? mobile : pc;
+    }
+
+    // 排除指定图片
+    if (excludeParam) {
+      const excludeSet = new Set(excludeParam.split(',').map(s => s.trim()));
+      list = list.filter(img => !excludeSet.has(img.src));
     }
 
     // 如果指定类型无图片，回退到另一类型
@@ -49,6 +58,7 @@ export async function GET(request) {
         width: randomImage.width,
         height: randomImage.height,
         size: randomImage.size,
+        mtime: randomImage.mtime,
       });
     }
 
